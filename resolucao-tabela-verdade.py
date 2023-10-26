@@ -1,15 +1,15 @@
 def gerar_lista_binarios(num_digitos):
     n_linhas = 2**num_digitos
-    binario = [0] * num_digitos
+    binario = [False] * num_digitos
     lista_binarios = []
     for _ in range(n_linhas):
         binario_temporario = binario.copy()
         lista_binarios.append(binario_temporario)
         for i in range(num_digitos - 1, -1, -1):
-            if binario[i] == 0:
-                binario[i] = 1
+            if binario[i] == False:
+                binario[i] = True
                 for j in range(i + 1, num_digitos):
-                    binario[j] = 0
+                    binario[j] = False
                 break
     return lista_binarios
 
@@ -79,7 +79,7 @@ for e in range(len(lista_expressoes)):
                 loop = True
                 break
 
-            if (
+            elif (
                 expressao[c].isnumeric()
                 and expressao[c + 1] in "^_!$"
                 and expressao[c + 2].isnumeric()
@@ -89,7 +89,7 @@ for e in range(len(lista_expressoes)):
                 loop = True
                 break
 
-            if expressao[c] == "(" and expressao[c + 2] == ")":
+            elif expressao[c] == "(" and expressao[c + 2] == ")":
                 expressao = expressao[:c] + expressao[c + 1] + expressao[c + 3 :]
                 loop = True
                 break
@@ -115,47 +115,23 @@ for e in range(len(lista_expressoes)):
 
     n_linhas = 2**n_variaveis_inicial
     for l in range(n_linhas):
-        linha = lista_binarios[l].copy()
+        linha = lista_binarios[l]
 
         for v in range(n_variaveis_inicial, n_variaveis):
-            if lista_variaveis[v][0] == "¬":
-                linha.append(int(not linha[int(lista_variaveis[v][1])]))
-            elif lista_variaveis[v][1] == "^":
-                linha.append(
-                    int(
-                        linha[int(lista_variaveis[v][0])]
-                        and linha[int(lista_variaveis[v][2])]
-                    )
-                )
-            elif lista_variaveis[v][1] == "_":
-                linha.append(
-                    int(
-                        linha[int(lista_variaveis[v][0])]
-                        or linha[int(lista_variaveis[v][2])]
-                    )
-                )
-            elif lista_variaveis[v][1] == "!":
-                if (
-                    linha[int(lista_variaveis[v][0])] == 0
-                    or linha[int(lista_variaveis[v][2])] == 1
-                ):
-                    linha.append(1)
-                else:
-                    linha.append(0)
-            elif lista_variaveis[v][1] == "$":
-                if (
-                    linha[int(lista_variaveis[v][0])]
-                    == linha[int(lista_variaveis[v][2])]
-                ):
-                    linha.append(1)
-                else:
-                    linha.append(0)
-
-        # Traduzindo linha da tabela para V e F
-        for r in range(len(linha)):
-            linha[r] = str(linha[r]).replace("0", "F")
-            linha[r] = str(linha[r]).replace("1", "V")
-
+            variavel = lista_variaveis[v]
+            operador = variavel[1]
+            resultado = False
+            if variavel[0] == "¬":
+                resultado = not linha[int(variavel[1])]
+            elif operador == "^":
+                resultado = linha[int(variavel[0])] and linha[int(variavel[2])]
+            elif operador == "_":
+                resultado = linha[int(variavel[0])] or linha[int(variavel[2])]
+            elif operador == "!":
+                resultado = linha[int(variavel[0])] == 0 or linha[int(variavel[2])] == 1
+            elif operador == "$":
+                resultado = linha[int(variavel[0])] == linha[int(variavel[2])]
+            linha.append(resultado)
         tabela.append(linha)
 
     # Definindo tamanho das colunas
@@ -169,7 +145,13 @@ for e in range(len(lista_expressoes)):
     # Printando tabela formatada
     for l in range(n_linhas + 1):
         for c in range(n_variaveis):
-            print(f"{tabela[l][c]:^{len_colunas[c]}}", end="")
+            item = tabela[l][c]
+            if l != 0:
+                if item:
+                    item = "V"
+                else:
+                    item = "F"
+            print(f"{item:^{len_colunas[c]}}", end="")
             if c != n_variaveis - 1:
                 print("|", end="")
         if l == 0:
